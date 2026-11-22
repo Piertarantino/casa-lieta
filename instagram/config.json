@@ -1,10 +1,19 @@
 {
-  "_leggimi": "Impostazioni del robot Instagram. urlSito: dove sono online le immagini (il dominio vero del sito, non il redirect). anticipoEventi: quanti giorni prima esce il post di un evento. giorniSenzaRipetere: dopo quanti giorni un post della banca può tornare.",
+  "_leggimi": "Impostazioni del robot Instagram. urlSito: dove sono online le immagini (il dominio vero del sito, non il redirect). anticipoEventi: quanti giorni prima esce il post di un evento. giorniSenzaRipetere: dopo quanti giorni un post della banca può tornare. igUserId: id dell'account Instagram @casalietasubiaco.",
   "urlSito": "https://www.casavacanzesubiacolivata.com",
   "cartellaImmagini": "social",
   "anticipoEventi": 3,
   "giorniSenzaRipetere": 45,
   "invito": "Casa Lieta, tra Subiaco e Monte Livata. Info e prenotazioni su casalieta.it (link in bio).",
-  "hashtagSempre": ["#CasaLieta", "#CasaLietaSubiaco"],
-  "hashtagEventi": ["#Subiaco", "#ValleDellAniene", "#MontiSimbruini", "#gitedaroma"]
+  "hashtagSempre": [
+    "#CasaLieta",
+    "#CasaLietaSubiaco"
+  ],
+  "hashtagEventi": [
+    "#Subiaco",
+    "#ValleDellAniene",
+    "#MontiSimbruini",
+    "#gitedaroma"
+  ],
+  "igUserId": "17841421429536609"
 }

@@ -36,7 +36,8 @@ async function caricaFTP(file, nome) {
 // Trova l'id dell'account Instagram da usare.
 async function accountInstagram() {
   if (token().startsWith('IG')) { const io = await api('GET', '/me', { fields: 'user_id,username' }); return { ig: io.user_id || io.id, nome: io.username }; }
-  if (process.env.IG_USER_ID) { const a = await api('GET', `/${process.env.IG_USER_ID}`, { fields: 'username' }); return { ig: process.env.IG_USER_ID, nome: a.username }; }
+  const id = process.env.IG_USER_ID || cfg.igUserId;
+  if (id) { const a = await api('GET', `/${id}`, { fields: 'username' }); return { ig: id, nome: a.username }; }
   const pagine = await api('GET', '/me/accounts', { fields: 'instagram_business_account{id,username}' });
   const trovato = (pagine.data || []).map((p) => p.instagram_business_account).find(Boolean);
   if (!trovato) throw new Error('Non trovo l\'account Instagram: aggiungi il segreto IG_USER_ID (lo vedi nella pagina dell\'app Meta, accanto all\'account).');
