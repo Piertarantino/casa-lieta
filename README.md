@@ -1,5 +1,7 @@
 # Casa Lieta, sito
 
+> Repository pubblico: mai password, token o dati degli ospiti nei file. Leggi [SICUREZZA.md](SICUREZZA.md).
+
 Sito statico (Astro) di Casa Lieta, casa vacanze e B&B tra Subiaco e Monte Livata.
 Pubblicato su Aruba (www.casavacanzesubiacolivata.com) via FTP da GitHub Actions.
 
