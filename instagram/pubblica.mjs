@@ -98,8 +98,13 @@ async function main() {
     git('config user.name "robot-instagram"');
     git('config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
     git(`add "${dest}"`);
-    git(`commit -m "instagram: immagine del ${data}"`);
-    git('push');
+    // Se la stessa immagine è già online (per esempio dopo una prova) non c'è niente da salvare.
+    const daSalvare = execSync('git diff --cached --name-only', { cwd: DIR }).toString().trim();
+    if (daSalvare) {
+      git(`commit -m "instagram: immagine del ${data}"`);
+      git('pull --rebase');
+      git('push');
+    }
     const ramo = process.env.GITHUB_REF_NAME || 'main';
     urlImmagine = `https://raw.githubusercontent.com/${process.env.GITHUB_REPOSITORY}/${ramo}/instagram/pubblicati/${nome}`;
   } else {
