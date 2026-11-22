@@ -7,8 +7,9 @@ un computer acceso.
 ## Come sceglie il post del giorno
 
 1. **Eventi** (`eventi.txt`): se un evento comincia entro 3 giorni, esce quello.
-2. **Date fisse** (in `post.json`, campo `data`): Natale, San Benedetto, ponti, Pasqua.
-3. **Banca di stagione** (`post.json`): il post approvato della stagione in corso che
+2. **Calendario** (`calendario.json`): il post scelto a mano per quella data.
+3. **Date fisse** (in `post.json`, campo `data`): Natale, San Benedetto, ponti, Pasqua.
+4. **Banca di stagione** (`post.json`): il post approvato della stagione in corso che
    è uscito meno di recente. Alterna foto e grafiche, non ripete la stessa rubrica due
    giorni di fila, e lascia passare 45 giorni prima di ripetere un post (se la banca
    basta).
@@ -41,7 +42,9 @@ Riga di esempio per `eventi.txt`:
   larghezza.
 - Senza foto, il robot crea la grafica "su carta" con le creste dei Simbruini, i
   colori della stagione e il marchio CL, come nel piano social.
-- Non si usano immagini generate al computer spacciate per foto.
+- `risorse/illustrazioni/`: immagini generate con l'AI (Gemini), solo scene di montagna,
+  neve e borghi, mai la casa. Si usano con il campo `illustrazione` e portano sempre la
+  scritta "Immagine illustrativa" sull'immagine e una riga nella didascalia.
 
 ## Provare prima di pubblicare
 
