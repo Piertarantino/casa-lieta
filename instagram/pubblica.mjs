@@ -74,14 +74,17 @@ async function main() {
   if (!prova1.ok) throw new Error(`L'immagine non risulta online: ${urlImmagine} (${prova1.status})`);
 
   // 2. Crea il contenitore, aspetta che Instagram l'abbia elaborato, poi pubblica.
-  const contenitore = await api('POST', '/me/media', { image_url: urlImmagine, caption: testo });
-  for (let i = 0; i < 20; i++) {
+  const io = await api('GET', '/me', { fields: 'user_id,username' });
+  const ig = io.user_id || io.id;
+  console.log(`Account: @${io.username}`);
+  const contenitore = await api('POST', `/${ig}/media`, { image_url: urlImmagine, caption: testo });
+  for (let i = 0; i < 30; i++) {
     const s = await api('GET', `/${contenitore.id}`, { fields: 'status_code' });
     if (s.status_code === 'FINISHED') break;
     if (s.status_code === 'ERROR' || s.status_code === 'EXPIRED') throw new Error(`Instagram non ha accettato l'immagine (${s.status_code})`);
-    await attendi(5000);
+    await attendi(10000);
   }
-  const pubblicato = await api('POST', '/me/media_publish', { creation_id: contenitore.id });
+  const pubblicato = await api('POST', `/${ig}/media_publish`, { creation_id: contenitore.id });
   let permalink = '';
   try { permalink = (await api('GET', `/${pubblicato.id}`, { fields: 'permalink' })).permalink; } catch {}
 
