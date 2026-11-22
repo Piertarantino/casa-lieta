@@ -2,8 +2,9 @@
 # Gira da solo su GitHub, senza Claude e senza computer accesi.
 #
 # Segreti (Settings > Secrets and variables > Actions > Secrets):
-#   IG_TOKEN     token dell'account Instagram professionale (dura 60 giorni, si rinnova da solo il lunedì)
-#   GH_PAT       token GitHub che può modificare i segreti del repository (serve solo al rinnovo di IG_TOKEN)
+#   IG_TOKEN     token Meta: dell'utente di sistema (EAA..., non scade) oppure di accesso con Instagram (IG..., dura 60 giorni e si rinnova il lunedì)
+#   IG_USER_ID   (facoltativo) id dell'account Instagram, se il robot non lo trova da solo
+#   GH_PAT       (solo con token IG...) token GitHub che può modificare i segreti, per il rinnovo di IG_TOKEN
 #   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD, FTP_DIR   gli stessi della pubblicazione del sito
 # Variabile (Settings > Secrets and variables > Actions > Variables):
 #   INSTAGRAM_ATTIVO = true   per accendere il robot; qualsiasi altro valore lo mette in pausa.
@@ -24,6 +25,10 @@ on:
         description: 'Solo prova: crea immagine e testo senza pubblicare'
         type: boolean
         default: true
+      verifica:
+        description: 'Controlla solo che il token funzioni e quale account vede'
+        type: boolean
+        default: false
 
 concurrency:
   group: instagram
@@ -58,6 +63,7 @@ jobs:
         env:
           INSTAGRAM_ATTIVO: ${{ vars.INSTAGRAM_ATTIVO }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -66,6 +72,7 @@ jobs:
           ARGS=""
           if [ -n "${{ inputs.id }}" ]; then ARGS="$ARGS --id=${{ inputs.id }}"; fi
           if [ "${{ inputs.prova }}" = "true" ]; then ARGS="$ARGS --prova"; fi
+          if [ "${{ inputs.verifica }}" = "true" ]; then ARGS="--verifica"; fi
           node instagram/pubblica.mjs $ARGS
 
       - name: Salva l'immagine del giorno tra i risultati
@@ -94,6 +101,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           if [ "$(date +%u)" != "1" ]; then echo "Non è lunedì"; exit 0; fi
+          case "$IG_TOKEN" in IG*) ;; *) echo "Token dell'utente di sistema: non scade, niente da rinnovare"; exit 0;; esac
           if [ -z "$GH_TOKEN" ]; then echo "::warning::Manca GH_PAT: rinnova IG_TOKEN a mano prima che scada"; exit 0; fi
           NUOVO=$(curl -sf "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=$IG_TOKEN" | jq -r .access_token)
           if [ -z "$NUOVO" ] || [ "$NUOVO" = "null" ]; then echo "::error::Rinnovo del token Instagram fallito"; exit 1; fi

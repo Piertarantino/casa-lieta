@@ -55,19 +55,25 @@ Riga di esempio per `eventi.txt`:
 1. **Account Instagram professionale.** Nell'app Instagram: Impostazioni > Tipo di
    account e strumenti > Passa a un account professionale > Azienda. Nella bio metti
    `casalieta.it`.
-2. **App Meta.** Su developers.facebook.com, con il tuo account Facebook: Le mie app >
-   Crea app > caso d'uso "Gestisci messaggi e contenuti su Instagram". Nella sezione
-   "Configurazione dell'API con accesso a Instagram" aggiungi l'account Instagram di
-   Casa Lieta e genera il token. Per pubblicare sul proprio account non serve la
-   revisione di Meta.
+2. **App Meta e token.** Su developers.facebook.com: Le mie app > Crea app > caso d'uso
+   "Gestisci messaggi e contenuti su Instagram", collegata al portfolio business di Casa
+   Lieta. Nel caso d'uso, "API Instagram con Unified Login":
+   - *Crea nuova configurazione*, risorsa: l'account Instagram @casalietasubiaco,
+     autorizzazioni almeno `instagram_basic` e `instagram_content_publish`;
+   - genera il token per un **utente di sistema** del portfolio (Impostazioni business >
+     Utenti > Utenti di sistema): non scade mai.
+   Va bene anche il token "accesso con Instagram" (comincia con `IG`): dura 60 giorni e il
+   robot lo rinnova da solo se c'è il segreto `GH_PAT`.
 3. **Segreti su GitHub** (Settings > Secrets and variables > Actions):
    - `IG_TOKEN`: il token appena generato.
-   - `GH_PAT`: un token GitHub "fine-grained" con permesso *Secrets: read and write*
-     solo su questo repository. Serve per rinnovare `IG_TOKEN` ogni lunedì, prima che
-     scada (dura 60 giorni).
+   - `IG_USER_ID` (solo se serve): l'id numerico dell'account Instagram.
+   - `GH_PAT` (solo con token `IG...`): token GitHub "fine-grained" con permesso
+     *Secrets: read and write* su questo repository.
    - `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_DIR`: gli stessi del sito.
      Le immagini dei post vengono caricate in `/social/` sul sito, perché Instagram le
      scarica da un indirizzo pubblico.
+   - Prova: Actions > Instagram > Run workflow con "verifica" spuntato. Dice se il token
+     funziona e quale account vede.
 4. **Accensione:** variabile `INSTAGRAM_ATTIVO` = `true`.
 
 Se qualcosa va storto (token scaduto, sito irraggiungibile) GitHub manda una mail

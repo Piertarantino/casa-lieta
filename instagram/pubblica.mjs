@@ -15,7 +15,10 @@ const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}`))?.split('=')[
 const prova = !!arg('prova');
 const data = arg('data') || oggiRoma();
 const cfg = config();
-const API = 'https://graph.instagram.com';
+// Due tipi di token: quello di "accesso con Instagram" (comincia con IG, va su graph.instagram.com)
+// e quello dell'utente di sistema del portfolio business (comincia con EAA, va su graph.facebook.com, non scade).
+const token = () => process.env.IG_TOKEN || '';
+const API = () => (token().startsWith('IG') ? 'https://graph.instagram.com' : 'https://graph.facebook.com/v23.0');
 
 function esci(msg, codice = 0) { console.log(msg); process.exit(codice); }
 
@@ -30,8 +33,18 @@ async function caricaFTP(file, nome) {
   } finally { c.close(); }
 }
 
+// Trova l'id dell'account Instagram da usare.
+async function accountInstagram() {
+  if (token().startsWith('IG')) { const io = await api('GET', '/me', { fields: 'user_id,username' }); return { ig: io.user_id || io.id, nome: io.username }; }
+  if (process.env.IG_USER_ID) { const a = await api('GET', `/${process.env.IG_USER_ID}`, { fields: 'username' }); return { ig: process.env.IG_USER_ID, nome: a.username }; }
+  const pagine = await api('GET', '/me/accounts', { fields: 'instagram_business_account{id,username}' });
+  const trovato = (pagine.data || []).map((p) => p.instagram_business_account).find(Boolean);
+  if (!trovato) throw new Error('Non trovo l\'account Instagram: aggiungi il segreto IG_USER_ID (lo vedi nella pagina dell\'app Meta, accanto all\'account).');
+  return { ig: trovato.id, nome: trovato.username };
+}
+
 async function api(metodo, percorso, parametri) {
-  const url = new URL(API + percorso);
+  const url = new URL(API() + percorso);
   const corpo = new URLSearchParams({ ...parametri, access_token: process.env.IG_TOKEN });
   const r = metodo === 'GET' ? await fetch(url + '?' + corpo) : await fetch(url, { method: 'POST', body: corpo });
   const j = await r.json();
@@ -42,6 +55,10 @@ async function api(metodo, percorso, parametri) {
 const attendi = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
+  if (arg('verifica')) {
+    const { ig, nome: utente } = await accountInstagram();
+    esci(`Token valido. Account Instagram: @${utente} (id ${ig}). Tipo di token: ${token().startsWith('IG') ? 'accesso con Instagram' : 'utente di sistema Meta'}.`);
+  }
   if (!prova && process.env.INSTAGRAM_ATTIVO !== 'true') esci('Pubblicazione in pausa (variabile INSTAGRAM_ATTIVO diversa da "true"). Niente da fare.');
 
   let scelta;
@@ -74,9 +91,8 @@ async function main() {
   if (!prova1.ok) throw new Error(`L'immagine non risulta online: ${urlImmagine} (${prova1.status})`);
 
   // 2. Crea il contenitore, aspetta che Instagram l'abbia elaborato, poi pubblica.
-  const io = await api('GET', '/me', { fields: 'user_id,username' });
-  const ig = io.user_id || io.id;
-  console.log(`Account: @${io.username}`);
+  const { ig, nome: utente } = await accountInstagram();
+  console.log(`Account: @${utente}`);
   const contenitore = await api('POST', `/${ig}/media`, { image_url: urlImmagine, caption: testo });
   for (let i = 0; i < 30; i++) {
     const s = await api('GET', `/${contenitore.id}`, { fields: 'status_code' });
