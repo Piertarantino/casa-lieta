@@ -1,6 +1,7 @@
 // Crea l'immagine 1080×1350 di un post con Chromium (Playwright).
-// Due modelli: "carta" (grafica con le creste dei Simbruini) e "foto" (una foto vera della casa + testo).
-// Le foto usate sono solo quelle in risorse/foto, cioè foto reali di Casa Lieta: niente immagini generate.
+// Due modelli: "carta" (grafica con le creste dei Simbruini) e "foto" (una foto + testo).
+// "foto": foto vere di Casa Lieta (risorse/foto). "illustrazione": immagini generate con l'AI (risorse/illustrazioni),
+// solo scene di montagna e di territorio, mai la casa; portano sempre la scritta "Immagine illustrativa".
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { DIR, PALETTE } from './lib.mjs';
@@ -48,7 +49,10 @@ function datiHTML(dati) {
 
 export function html(p, stagione) {
   const pal = PALETTE[stagione];
-  const foto = p.foto && existsSync(join(R, 'foto', p.foto)) ? join(R, 'foto', p.foto) : null;
+  const illustrata = !!p.illustrazione;
+  const fileFoto = illustrata ? join(R, 'illustrazioni', p.illustrazione) : p.foto ? join(R, 'foto', p.foto) : null;
+  const foto = fileFoto && existsSync(fileFoto) ? fileFoto : null;
+  const altezza = p.fotoAltezza || 790;
   const titolo = esc(p.titolo).replace(/\n/g, '<br>');
   const lungo = p.titolo.length > 46;
   const css = `${FONT}
@@ -69,15 +73,17 @@ export function html(p, stagione) {
   if (foto) {
     corpo = `
     <style>
-      .foto{position:absolute;left:0;top:0;width:1080px;height:${p.fotoAltezza || 800}px;background:url(data:image/jpeg;base64,${b64(foto)}) ${p.fotoPosizione || 'center'}/cover}
-      .testo{position:absolute;left:84px;right:84px;top:${(p.fotoAltezza || 800) + 64}px;display:flex;flex-direction:column;gap:26px}
-      h1{font-size:${lungo ? 64 : 76}px}
+      .foto{position:absolute;left:0;top:0;width:1080px;height:${altezza}px;background:url(data:image/jpeg;base64,${b64(foto)}) ${p.fotoPosizione || 'center'}/cover}
+      .testo{position:absolute;left:84px;right:84px;top:${altezza + 60}px;display:flex;flex-direction:column;gap:26px}
+      h1{font-size:${lungo ? 60 : 70}px}
       .sotto{font-size:32px}
       .marchio{top:auto;bottom:40px;right:84px;width:84px;height:84px}
       .piede{right:200px;color:${pal.muted}}
-      .striscia{position:absolute;left:0;right:0;top:${p.fotoAltezza || 800}px;height:10px;background:${pal.accent}}
+      .etichetta{position:absolute;left:28px;top:${altezza - 62}px;font-family:"IBM Plex Mono",monospace;font-size:19px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.42);padding:7px 14px;border-radius:4px}
+      .striscia{position:absolute;left:0;right:0;top:${altezza}px;height:10px;background:${pal.accent}}
     </style>
     <div class="foto"></div><div class="striscia"></div>
+    ${illustrata ? '<div class="etichetta">Immagine illustrativa</div>' : ''}
     <div class="testo"><div class="rubrica">${esc(p.rubrica)}</div><h1>${titolo}</h1>${p.sottotitolo ? `<p class="sotto">${esc(p.sottotitolo)}</p>` : ''}</div>
     ${marchio(stagione)}
     <div class="piede"><span>${esc(p.luogo || 'Subiaco · Monte Livata')}</span></div>`;

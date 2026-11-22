@@ -8,6 +8,7 @@ const leggiJSON = (f, def) => (existsSync(join(DIR, f)) ? JSON.parse(readFileSyn
 
 export const config = () => leggiJSON('config.json', {});
 export const banca = () => leggiJSON('post.json', { post: [] }).post;
+export const calendario = () => { const c = leggiJSON('calendario.json', {}); delete c._leggimi; return c; };
 export const registro = () => leggiJSON('registro.json', { pubblicati: [] });
 
 // Stessi colori del sito (src/styles/global.css) e del piano social.
@@ -114,11 +115,16 @@ export function postDelGiorno(data = oggiRoma(), simula = null) {
     .sort((a, b) => a.inizio.localeCompare(b.inizio));
   if (ev.length) return { motivo: `evento del ${ev[0].inizio}`, post: postDaEvento(ev[0]), stagione };
 
-  // 2. Post a data fissa (feste, ricorrenze), se approvato.
+  // 2. Calendario scelto a mano (calendario.json), se il post è approvato.
+  const idCal = calendario()[data];
+  const daCal = idCal && tutti.find((p) => p.id === idCal && p.approvato);
+  if (daCal) return { motivo: 'calendario', post: daCal, stagione };
+
+  // 3. Post a data fissa (feste, ricorrenze), se approvato.
   const fisso = tutti.find((p) => p.approvato && dataFissa(p, anno) === data);
   if (fisso) return { motivo: 'data fissa', post: fisso, stagione };
 
-  // 3. Banca di stagione: il post approvato pubblicato meno di recente (mai pubblicati prima, nell'ordine del file).
+  // 4. Banca di stagione: il post approvato pubblicato meno di recente (mai pubblicati prima, nell'ordine del file).
   //    Non si ripete la stessa rubrica del giorno prima, se c'è un'alternativa.
   const ieri = reg.pubblicati.filter((r) => r.data < data).sort((a, b) => a.data.localeCompare(b.data)).pop();
   const rubricaIeri = ieri && tutti.find((p) => p.id === ieri.id)?.rubrica;
@@ -151,7 +157,8 @@ export function didascalia(p) {
   const fissi = cfg.hashtagSempre || ['#CasaLieta', '#CasaLietaSubiaco'];
   const tag = [...new Set([...(p.hashtag || []), ...fissi])].slice(0, 12);
   const invito = p.invito || cfg.invito || 'Casa Lieta, tra Subiaco e Monte Livata. Info e prenotazioni su casalieta.it (link in bio).';
-  const testo = `${p.didascalia.trim()}\n\n${invito}\n\n${tag.join(' ')}`;
+  const nota = p.illustrazione ? '\n\n(Immagine illustrativa creata con l\'intelligenza artificiale.)' : '';
+  const testo = `${p.didascalia.trim()}\n\n${invito}${nota}\n\n${tag.join(' ')}`;
   if (testo.length > 2200) throw new Error(`Didascalia troppo lunga (${testo.length} caratteri) per ${p.id}`);
   return testo;
 }

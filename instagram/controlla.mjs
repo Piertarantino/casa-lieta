@@ -2,7 +2,7 @@
 //   node instagram/controlla.mjs
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { DIR, banca, eventi, didascalia, oggiRoma } from './lib.mjs';
+import { DIR, banca, eventi, didascalia, oggiRoma, calendario } from './lib.mjs';
 
 const errori = [];
 const avvisi = [];
@@ -17,6 +17,8 @@ for (const p of post) {
   if (p.stagioni && !p.stagioni.every((s) => STAGIONI.includes(s))) errori.push(`${chi}: stagione non valida (${p.stagioni})`);
   if (p.data && !/^(\d{2}-\d{2}|pasqua([+-]\d+)?)$/.test(p.data)) errori.push(`${chi}: "data" deve essere MM-GG oppure pasqua, pasqua+1, pasqua-7`);
   if (p.foto && !existsSync(join(DIR, 'risorse', 'foto', p.foto))) errori.push(`${chi}: la foto ${p.foto} non è in instagram/risorse/foto`);
+  if (p.illustrazione && !existsSync(join(DIR, 'risorse', 'illustrazioni', p.illustrazione))) errori.push(`${chi}: l'immagine ${p.illustrazione} non è in instagram/risorse/illustrazioni`);
+  if (p.foto && p.illustrazione) errori.push(`${chi}: usa "foto" (foto vera) oppure "illustrazione" (immagine generata), non tutte e due`);
   if (typeof p.approvato !== 'boolean') errori.push(`${chi}: "approvato" deve essere true o false`);
   try { didascalia(p); } catch (e) { errori.push(e.message); }
 }
@@ -25,6 +27,12 @@ for (const e of eventi()) {
   if (e.errore) errori.push(`eventi.txt riga ${e.riga}: scritta male. Serve "AAAA-MM-GG | titolo | luogo | link". Trovato: ${e.testo}`);
   else if ((e.fine || e.inizio) < oggi) avvisi.push(`eventi.txt riga ${e.riga}: evento già passato, si può cancellare (${e.titolo})`);
   else if (!e.link) avvisi.push(`eventi.txt riga ${e.riga}: manca il link della fonte (${e.titolo})`);
+}
+// Calendario: date con un post scelto a mano.
+const cal = calendario();
+for (const [data, id] of Object.entries(cal)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) errori.push(`calendario.json: data scritta male "${data}" (serve AAAA-MM-GG)`);
+  if (!ids.has(id)) errori.push(`calendario.json: il ${data} c'è "${id}", che non esiste in post.json`);
 }
 const approvati = post.filter((p) => p.approvato).length;
 console.log(`post.json: ${post.length} post, ${approvati} approvati. eventi.txt: ${eventi().filter((e) => !e.errore).length} eventi.`);
