@@ -2,20 +2,18 @@
 # Il passaggio forzato a HTTPS e a www si attiva dal pannello Aruba (evita loop di redirect).
 AddDefaultCharset utf-8
 
-Redirect 301 /index.php /
-Redirect 301 /camera1.php /#camere
-Redirect 301 /camera2.php /#camere
-Redirect 301 /camera3.php /#camere
-Redirect 301 /monolocale.php /#camere
-Redirect 301 /tariffe.php /#prenota
-Redirect 301 /dovesiamo.php /#dove
-Redirect 301 /contatti.php /#dove
-Redirect 301 /dintorni.php /#dintorni
-Redirect 301 /offertespeciali.php /
+# Google ha ancora in indice i vecchi indirizzi anche SENZA ".php" (es. /camera1, /dintorni):
+# RedirectMatch copre entrambe le forme, con o senza barra finale.
+RedirectMatch 301 ^/index(\.php)?$ /
+RedirectMatch 301 ^/camera[123](\.php)?/?$ /#camere
+RedirectMatch 301 ^/monolocale(\.php)?/?$ /#camere
+RedirectMatch 301 ^/tariffe(\.php)?/?$ /#prenota
+RedirectMatch 301 ^/(dovesiamo|contatti)(\.php)?/?$ /#dove
+RedirectMatch 301 ^/dintorni(\.php)?/?$ /#dintorni
+RedirectMatch 301 ^/(offertespeciali|ristorante)(\.php)?/?$ /
 Redirect 301 /offerte-casavacanze.html /
 Redirect 301 /virtual-tour-3d.html /
 Redirect 301 /imsitemap.html /
-Redirect 301 /ristorante.php /
 Redirect 301 /casa_vacanze_beb_casa_lieta.html /
 Redirect 301 /sitemap.xml /sitemap-index.xml
 

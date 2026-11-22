@@ -31,6 +31,7 @@ export const SITO = {
   // Imposta di soggiorno del Comune di Subiaco: importo da confermare.
   impostaSoggiorno: 'con importi ed esenzioni che vi indichiamo al momento della prenotazione',
   facebook: 'https://www.facebook.com/profile.php?id=100063492162668',
+  instagram: 'https://www.instagram.com/casalietasubiaco/',
 };
 
 // Rotazione stagionale.
