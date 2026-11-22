@@ -1,5 +1,5 @@
 {
-  "_leggimi": "Impostazioni del robot Instagram. urlSito: dove sono online le immagini (il dominio vero del sito, non il redirect). anticipoEventi: quanti giorni prima esce il post di un evento. giorniSenzaRipetere: dopo quanti giorni un post della banca può tornare. igUserId: id dell'account Instagram @casalietasubiaco.",
+  "_leggimi": "Impostazioni del robot Instagram. urlSito: dove sono online le immagini (il dominio vero del sito, non il redirect). anticipoEventi: quanti giorni prima esce il post di un evento. giorniSenzaRipetere: dopo quanti giorni un post della banca può tornare. igUserId: id dell'account Instagram @casalietasubiaco. hosting: \"github\" (immagini servite dal repository pubblico, nessun FTP) oppure \"ftp\" (caricate sul sito Aruba).",
   "urlSito": "https://www.casavacanzesubiacolivata.com",
   "cartellaImmagini": "social",
   "anticipoEventi": 3,
@@ -15,5 +15,6 @@
     "#MontiSimbruini",
     "#gitedaroma"
   ],
-  "igUserId": "17841421429536609"
+  "igUserId": "17841421429536609",
+  "hosting": "github"
 }

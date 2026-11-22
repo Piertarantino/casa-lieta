@@ -6,7 +6,8 @@
 //   node instagram/pubblica.mjs --id=sacro-speco             pubblica (o prova) un post preciso
 //
 // Variabili d'ambiente (segreti di GitHub): IG_TOKEN, FTP_SERVER, FTP_USERNAME, FTP_PASSWORD, FTP_DIR.
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { DIR, config, registro, banca, postDelGiorno, didascalia, oggiRoma, stagioneDi } from './lib.mjs';
 import { creaImmagine, chiudi } from './immagine.mjs';
@@ -83,14 +84,32 @@ async function main() {
   console.log(`${data} · ${p.id} (${scelta.motivo})\n---\n${testo}\n---\nImmagine: ${file}`);
   if (prova && !arg('ftp')) return;
 
-  for (const v of [...(arg('ftp') ? [] : ['IG_TOKEN']), 'FTP_SERVER', 'FTP_USERNAME', 'FTP_PASSWORD']) if (!process.env[v]) esci(`Manca il segreto ${v}`, 1);
-
   // 1. L'immagine va messa online: Instagram la scarica da un indirizzo pubblico.
-  await caricaFTP(file, nome);
-  const urlImmagine = `${(cfg.urlSito || '').replace(/\/$/, '')}/${cfg.cartellaImmagini || 'social'}/${nome}`;
-  const prova1 = await fetch(urlImmagine, { method: 'HEAD' });
-  if (!prova1.ok) throw new Error(`L'immagine non risulta online: ${urlImmagine} (${prova1.status})`);
-  if (arg('ftp')) esci(`FTP ok: l'immagine è online su ${urlImmagine} (${prova1.headers.get('content-type')}). Niente pubblicato su Instagram.`);
+  //    hosting "github": l'immagine si salva nel repository (pubblico) e GitHub la serve; "ftp": si carica sul sito Aruba.
+  const github = (cfg.hosting || 'github') === 'github';
+  const richiesti = [...(arg('ftp') ? [] : ['IG_TOKEN']), ...(github ? ['GITHUB_REPOSITORY'] : ['FTP_SERVER', 'FTP_USERNAME', 'FTP_PASSWORD'])];
+  for (const v of richiesti) if (!process.env[v]) esci(`Manca ${v}`, 1);
+  let urlImmagine;
+  if (github) {
+    const dest = join(DIR, 'pubblicati', nome);
+    mkdirSync(join(DIR, 'pubblicati'), { recursive: true });
+    copyFileSync(file, dest);
+    const git = (c) => execSync(`git ${c}`, { cwd: DIR, stdio: 'inherit' });
+    git('config user.name "robot-instagram"');
+    git('config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
+    git(`add "${dest}"`);
+    git(`commit -m "instagram: immagine del ${data}"`);
+    git('push');
+    const ramo = process.env.GITHUB_REF_NAME || 'main';
+    urlImmagine = `https://raw.githubusercontent.com/${process.env.GITHUB_REPOSITORY}/${ramo}/instagram/pubblicati/${nome}`;
+  } else {
+    await caricaFTP(file, nome);
+    urlImmagine = `${(cfg.urlSito || '').replace(/\/$/, '')}/${cfg.cartellaImmagini || 'social'}/${nome}`;
+  }
+  let prova1;
+  for (let i = 0; i < 6; i++) { prova1 = await fetch(urlImmagine, { method: 'HEAD' }); if (prova1.ok) break; await attendi(10000); }
+  if (!prova1.ok) throw new Error(`L'immagine non risulta online: ${urlImmagine} (${prova1.status}). Se l'hosting è "github", il repository deve essere pubblico.`);
+  if (arg('ftp')) esci(`Prova ok: l'immagine è online su ${urlImmagine} (${prova1.headers.get('content-type')}). Niente pubblicato su Instagram.`);
 
   // 2. Crea il contenitore, aspetta che Instagram l'abbia elaborato, poi pubblica.
   const { ig, nome: utente } = await accountInstagram();

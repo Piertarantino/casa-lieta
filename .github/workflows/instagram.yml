@@ -30,7 +30,7 @@ on:
         type: boolean
         default: false
       ftp:
-        description: 'Prova FTP: carica l immagine del giorno sul sito senza pubblicare su Instagram'
+        description: 'Prova immagine: mette online l immagine del giorno senza pubblicare su Instagram'
         type: boolean
         default: false
 
@@ -93,6 +93,7 @@ jobs:
           if ! git diff --quiet instagram/registro.json; then
             git config user.name "robot-instagram"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git pull --rebase -q || true
             git add instagram/registro.json
             git commit -m "instagram: post del $(TZ=Europe/Rome date +%d/%m)"
             git push
