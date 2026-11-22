@@ -29,6 +29,10 @@ on:
         description: 'Controlla solo che il token funzioni e quale account vede'
         type: boolean
         default: false
+      ftp:
+        description: 'Prova FTP: carica l immagine del giorno sul sito senza pubblicare su Instagram'
+        type: boolean
+        default: false
 
 concurrency:
   group: instagram
@@ -73,6 +77,7 @@ jobs:
           if [ -n "${{ inputs.id }}" ]; then ARGS="$ARGS --id=${{ inputs.id }}"; fi
           if [ "${{ inputs.prova }}" = "true" ]; then ARGS="$ARGS --prova"; fi
           if [ "${{ inputs.verifica }}" = "true" ]; then ARGS="--verifica"; fi
+          if [ "${{ inputs.ftp }}" = "true" ]; then ARGS="--prova --ftp"; fi
           node instagram/pubblica.mjs $ARGS
 
       - name: Salva l'immagine del giorno tra i risultati

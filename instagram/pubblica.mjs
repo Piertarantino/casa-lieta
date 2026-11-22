@@ -67,7 +67,7 @@ async function main() {
     const p = banca().find((x) => x.id === arg('id'));
     if (!p) esci(`Nessun post con id "${arg('id')}" in post.json`, 1);
     scelta = { motivo: 'scelto a mano', post: p, stagione: stagioneDi(data) };
-  } else scelta = postDelGiorno(data);
+  } else scelta = postDelGiorno(data, arg('ftp') ? { registro: { pubblicati: [] } } : null);
 
   if (!scelta.post) esci(`${data}: nessun post (${scelta.motivo}).`);
   const p = scelta.post;
@@ -81,15 +81,16 @@ async function main() {
   if (sfora) esci(`Il testo di "${p.id}" esce dallo spazio dell'immagine: accorcia titolo o sottotitolo in post.json.`, 1);
   writeFileSync(file.replace(/\.jpg$/, '.txt'), testo);
   console.log(`${data} · ${p.id} (${scelta.motivo})\n---\n${testo}\n---\nImmagine: ${file}`);
-  if (prova) return;
+  if (prova && !arg('ftp')) return;
 
-  for (const v of ['IG_TOKEN', 'FTP_SERVER', 'FTP_USERNAME', 'FTP_PASSWORD']) if (!process.env[v]) esci(`Manca il segreto ${v}`, 1);
+  for (const v of [...(arg('ftp') ? [] : ['IG_TOKEN']), 'FTP_SERVER', 'FTP_USERNAME', 'FTP_PASSWORD']) if (!process.env[v]) esci(`Manca il segreto ${v}`, 1);
 
   // 1. L'immagine va messa online: Instagram la scarica da un indirizzo pubblico.
   await caricaFTP(file, nome);
   const urlImmagine = `${(cfg.urlSito || '').replace(/\/$/, '')}/${cfg.cartellaImmagini || 'social'}/${nome}`;
   const prova1 = await fetch(urlImmagine, { method: 'HEAD' });
   if (!prova1.ok) throw new Error(`L'immagine non risulta online: ${urlImmagine} (${prova1.status})`);
+  if (arg('ftp')) esci(`FTP ok: l'immagine è online su ${urlImmagine} (${prova1.headers.get('content-type')}). Niente pubblicato su Instagram.`);
 
   // 2. Crea il contenitore, aspetta che Instagram l'abbia elaborato, poi pubblica.
   const { ig, nome: utente } = await accountInstagram();
