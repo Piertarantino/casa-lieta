@@ -37,7 +37,7 @@ const ld = [
     numberOfRooms: nCamere,
     petsAllowed: true,
     amenityFeature: ['Parcheggio gratuito', 'Colazione inclusa', 'Area barbecue', 'Cucina in comune', 'Terrazzo panoramico'].map((n) => ({ '@type': 'LocationFeatureSpecification', name: n, value: true })),
-    sameAs: [SITO.facebook, ...SITO.portali.map((p) => p.url).filter(Boolean)],
+    sameAs: [SITO.facebook, SITO.instagram, ...SITO.portali.map((p) => p.url).filter(Boolean)],
   },
   ...jsonld,
 ];
