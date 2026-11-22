@@ -1,0 +1,26 @@
+{
+  "name": "casa-lieta-sito",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/valida-notizie.mjs && astro build",
+    "preview": "astro preview",
+    "notizie:valida": "node scripts/valida-notizie.mjs",
+    "instagram:controlla": "node instagram/controlla.mjs",
+    "instagram:anteprima": "node instagram/anteprima.mjs",
+    "instagram:prova": "node instagram/pubblica.mjs --prova"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.6",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/instrument-sans": "^5.3.0",
+    "@fontsource/marcellus": "^5.3.0",
+    "astro": "^5.18.2"
+  },
+  "devDependencies": {
+    "basic-ftp": "5.0.5",
+    "playwright": "1.63.0"
+  }
+}

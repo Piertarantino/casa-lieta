@@ -1,0 +1,386 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Ridges from '../components/Ridges.astro';
+import Atmosfera from '../components/Atmosfera.astro';
+import Meteo from '../components/Meteo.astro';
+import Notizie from '../components/Notizie.astro';
+import Icona from '../components/Icona.astro';
+import { STAGIONI, ORDINE } from '../data/stagioni';
+import { SITO } from '../config';
+import { readFileSync } from 'node:fs';
+const COLORI: Record<string, string> = { '#f6f1e7': 'var(--paper)', '#2f5d3a': 'var(--accent)', '#6b5d45': 'var(--muted)', '#c9b99a': 'var(--line)' };
+const mappa = readFileSync('src/assets/mappa-ultimo-tratto.svg', 'utf8')
+  .replace(/<\?xml[^>]*>/, '')
+  .replace(/(fill|stroke)="(#[0-9a-fA-F]{6})"/g, (m, k, c) => (COLORI[c.toLowerCase()] ? `style="${k}:${COLORI[c.toLowerCase()]}"` : m));
+import sacroSpeco from '../assets/foto/sacro-speco.png';
+import santaScolastica from '../assets/foto/santa-scolastica.png';
+import rocca from '../assets/foto/rocca.png';
+import livata from '../assets/foto/livata-neve.png';
+
+// Iconcina accanto a ogni dato delle attività (distanza, livello, durata...).
+const ICONA_DATO: Record<string, string> = { 'da casa': 'pin', livello: 'monte', quota: 'monte', vetta: 'monte', dislivello: 'salita', visita: 'orologio', quando: 'calendario', auto: 'auto', raggio: 'bussola', 'A/R': 'giro' };
+const portali = SITO.portali.filter((p) => p.url);
+const booking = SITO.portali.find((p) => p.nome.startsWith('Booking'))?.url ?? '';
+const alloggi = (await getCollection('alloggi', (a) => a.data.attivo)).sort((a, b) => a.data.ordine - b.data.ordine);
+const marciano = alloggi.filter((a) => a.data.sede === 'marciano');
+const altre = alloggi.filter((a) => a.data.sede !== 'marciano');
+
+const dintorni = [
+  { nome: 'Sacro Speco', testo: 'Il monastero di San Benedetto aggrappato alla roccia, con affreschi dall\'VIII al XV secolo e il primo ritratto di San Francesco.', km: '≈ 8 km', foto: sacroSpeco },
+  { nome: 'Santa Scolastica', testo: 'Tre chiostri, cosmatesco, gotico e rinascimentale, e la biblioteca dove nacque il primo libro stampato in Italia.', km: '≈ 6 km', foto: santaScolastica },
+  { nome: 'Rocca Abbaziale', testo: 'La rocca dei Borgia domina il borgo medievale di Subiaco e il Ponte di San Francesco sull\'Aniene.', km: '≈ 3 km', foto: rocca },
+  { nome: 'Monte Livata', testo: 'La montagna di Roma: sci e ciaspole d\'inverno, faggete, cavalli e mountain bike d\'estate.', km: '≈ 10 km', foto: livata },
+];
+---
+<Base
+  titolo="Casa Lieta · Casa vacanze e B&B a Subiaco, vicino a Monte Livata"
+  descrizione="Casa vacanze e B&B tra Subiaco e Monte Livata, nel Parco dei Monti Simbruini a un'ora da Roma. Sentieri d'estate, neve e sci d'inverno, camere con bagno e terrazzo panoramico."
+>
+  <div class="hero">
+    <Atmosfera />
+    <div class="wrap hero-grid">
+      <div class="hero-testo">
+        <h1 class="eyebrow h1">Casa vacanze e B&amp;B a Subiaco, vicino a Monte Livata</h1>
+        {ORDINE.map((s) => (
+          <div data-solo={s}>
+            <p class="titolo">{STAGIONI[s].titolo}</p>
+            <p class="lead">{STAGIONI[s].intro}</p>
+            <p class="periodo mono">{STAGIONI[s].nome} · {STAGIONI[s].periodo}</p>
+          </div>
+        ))}
+        <div class="stagioni" role="group" aria-label="Guarda Casa Lieta in un'altra stagione">
+          <span>Guardala in</span>
+          {ORDINE.map((s) => <button type="button" data-vai={s} aria-pressed="false">{STAGIONI[s].nome}</button>)}
+        </div>
+        <Meteo />
+      </div>
+      <div class="cartoline">
+        {ORDINE.map((s) => (
+          <figure class="postcard" data-solo={s}>
+            <Image src={STAGIONI[s].foto} alt={STAGIONI[s].didascalia} widths={[480, 800]} sizes="(max-width: 820px) 90vw, 400px" loading={s === 'estate' ? 'eager' : 'lazy'} />
+            <figcaption><b>{STAGIONI[s].didascalia}</b><span class="mono">41.947° N · 13.106° E</span></figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+    <div class="parallax"><Ridges /></div>
+  </div>
+
+  <div class="booking" id="prenota">
+    <div class="wrap">
+      <!-- Fino al calendario online: le date compongono un messaggio WhatsApp o aprono Booking.com. -->
+      <form class="bar" id="richiesta" data-tel={SITO.telefono.replace(/\D/g, '')}>
+        <div class="f"><label class="l" for="arrivo">Arrivo</label><input type="date" id="arrivo" name="arrivo" required /></div>
+        <div class="f"><label class="l" for="partenza">Partenza</label><input type="date" id="partenza" name="partenza" required /></div>
+        <div class="f"><label class="l" for="ospiti">Ospiti</label>
+          <select id="ospiti" name="ospiti">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((n) => <option value={n} selected={n === 2}>{n} {n === 1 ? 'ospite' : 'ospiti'}</option>)}
+          </select>
+        </div>
+        <div class="go">
+          <button class="btn" type="submit" id="wa">Chiedi su WhatsApp</button>
+          {booking && <a class="btn ghost" id="bk" href={booking} target="_blank" rel="noopener">Verifica su Booking</a>}
+        </div>
+      </form>
+      <div class="sotto">
+        <small>Rispondiamo noi, di solito in giornata. Oppure chiamaci al <a href={`tel:${SITO.telefono.replace(/\s/g, '')}`}>{SITO.telefono.replace('+39 ', '')}</a>.</small>
+        {portali.length > 0 && (
+          <div class="portali"><span>Siamo anche su</span>{portali.map((p) => <a href={p.url} target="_blank" rel="noopener">{p.nome}</a>)}</div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <section class="blocco" id="stagione">
+    <div class="wrap">
+      {ORDINE.map((s) => (
+        <div data-solo={s}>
+          <div class="sechead rivela">
+            <div><div class="eyebrow">{STAGIONI[s].nome} a Casa Lieta</div><h2>{STAGIONI[s].sezione}</h2></div>
+            <p>{STAGIONI[s].sezioneIntro}</p>
+          </div>
+          <div class="acts">
+            {STAGIONI[s].attivita.map((a, i) => (
+              <article class="act rivela" style={`transition-delay:${i * 90}ms`}>
+                <h3>{a.titolo}</h3>
+                <p>{a.testo}</p>
+                <dl>{a.dati.map(([k, v]) => <div><Icona nome={ICONA_DATO[k] ?? 'pin'} size={18} /><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+              </article>
+            ))}
+          </div>
+        </div>
+      ))}
+      <p class="note">Distanze e dislivelli sono indicativi. Difficoltà secondo la scala CAI: T turistico, E escursionistico.</p>
+    </div>
+  </section>
+
+  <section class="blocco" id="camere">
+    <div class="wrap">
+      <div class="sechead rivela">
+        <div><div class="eyebrow">Contrada Marciano · Subiaco</div><h2>Le camere, tra il bosco e la valle</h2></div>
+        <p>Una casa su due piani immersa nel verde, con cucina per gli ospiti, terrazzo sotto il pergolato, barbecue e parcheggio. Animali benvenuti.</p>
+      </div>
+      <div class="rooms">
+        {marciano.map((a, i) => (
+          <article class="room rivela" style={`transition-delay:${i * 80}ms`}>
+            <figure><Image src={a.data.foto} alt={`${a.data.nome}, Casa Lieta`} widths={[400, 700]} sizes="(max-width: 480px) 90vw, (max-width: 900px) 45vw, 270px" /></figure>
+            <h3>{a.data.nome}</h3>
+            <div class="meta mono"><span><Icona nome="piano" size={18} />{a.data.piano}</span><span><Icona nome="letto" size={18} />{a.data.posti}</span></div>
+            <p>{a.data.breve}</p>
+          </article>
+        ))}
+      </div>
+      {altre.map((a) => (
+        <article class="extra rivela">
+          <figure><Image src={a.data.foto} alt={a.data.nome} widths={[400]} /></figure>
+          <div>
+            <div class="eyebrow">Anche in paese</div>
+            <h3>{a.data.nome}</h3>
+            <div class="meta mono">{a.data.piano} · {a.data.posti}</div>
+            <p>{a.data.breve}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <Notizie />
+
+  <section class="blocco" id="dintorni">
+    <div class="wrap">
+      <div class="sechead rivela">
+        <div><div class="eyebrow">Valle dell'Aniene · Monti Simbruini</div><h2>Subiaco, i monasteri, la montagna</h2></div>
+        <p>Il borgo dove San Benedetto scrisse la sua regola è a dieci minuti. Le piste di Livata a un quarto d'ora.</p>
+      </div>
+      <div class="luoghi">
+        {dintorni.map((d, i) => (
+          <article class="luogo rivela" style={`transition-delay:${i * 80}ms`}>
+            <figure><Image src={d.foto} alt={d.nome} widths={[300, 600]} sizes="(max-width: 600px) 90vw, 270px" /><span class="mono">{d.km}</span></figure>
+            <h3>{d.nome}</h3>
+            <p>{d.testo}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="blocco">
+    <div class="wrap voti rivela">
+      <div class="punteggio"><b>4,4</b><span>su 5</span><a class="ta" href={SITO.portali.find((p) => p.nome === 'Tripadvisor')?.url} target="_blank" rel="noopener">44 recensioni su Tripadvisor</a><small class="quando">dato di novembre 2026</small></div>
+      <ul>
+        <li><q>Weekend meraviglioso</q><span>Romina M · febbraio 2026</span></li>
+        <li><q>Soluzione perfetta per più famiglie</q><span>mary_cst · luglio 2021</span></li>
+        <li><q>Relax, ospitalità e cortesia</q><span>Andrea M · luglio 2020</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="blocco" id="info">
+    <div class="wrap info rivela">
+      <div><div class="eyebrow">Buono a sapersi</div><h2>Prima di partire</h2></div>
+      <dl>
+        <div><Icona nome="colazione" size={30} /><dt>Colazione</dt><dd>Inclusa nel soggiorno, da gustare sul terrazzo quando il tempo lo permette.</dd></div>
+        <div><Icona nome="zampa" size={30} /><dt>Amici a quattro zampe</dt><dd>Benvenuti, con un giardino recintato tutto per loro.</dd></div>
+        <div><Icona nome="auto" size={30} /><dt>Parcheggio</dt><dd>Privato e gratuito, accanto alla casa.</dd></div>
+        <div><Icona nome="comune" size={30} /><dt>Imposta di soggiorno</dt><dd>Il Comune di Subiaco la chiede a chi soggiorna, {SITO.impostaSoggiorno}. Contribuisce a curare sentieri e monasteri che verrete a scoprire.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="blocco" id="dove">
+    <div class="wrap">
+      <div class="sechead rivela">
+        <div><div class="eyebrow">Come arrivare</div><h2>A un'ora e un quarto da Roma</h2></div>
+        <p>{SITO.indirizzo.via}, {SITO.indirizzo.cap} {SITO.indirizzo.citta} ({SITO.indirizzo.provincia}). Per il navigatore usate il nostro pulsante: porta alla scheda Google, che conosce la strada giusta.</p>
+      </div>
+      <div class="dove">
+        <div class="rivela">
+          <figure class="mappa"><Fragment set:html={mappa} /><figcaption>L'ultimo tratto: si arriva solo da Contrada Camarde.</figcaption></figure>
+          <div class="azioni">
+            <a class="btn" href={SITO.percorso} target="_blank" rel="noopener">Avvia il navigatore</a>
+            <a class="btn ghost" href={SITO.mappa} target="_blank" rel="noopener">Vedi su Google Maps</a>
+          </div>
+        </div>
+        <div class="tragitti rivela">
+          <div class="tratto"><h3>Da Roma <span class="mono"><Icona nome="auto" size={16} />≈ 1 h 15 min · 76 km</span></h3>
+            <ol><li>A24 direzione L'Aquila-Teramo, uscita Vicovaro-Mandela.</li><li>A sinistra sulla SS5 Tiburtina per circa 10 km, poi a destra sulla SR411 Sublacense per circa 12 km fino a Subiaco.</li><li>Dalla tangenziale di Subiaco a sinistra su Via Papa Giovanni XXIII (SP40a), seguendo Monte Livata / Ospedale.</li></ol></div>
+          <div class="tratto"><h3>Da Subiaco centro <span class="mono"><Icona nome="auto" size={16} />≈ 12 min · 6 km</span></h3>
+            <ol><li>Seguite Monte Livata / Ospedale sulla SP40a per circa 2 km.</li><li>A destra sulla SP40b (800 m), poi avanti sulla SP44b per circa 800 m, oltre la Cappella di Sant'Anna.</li></ol></div>
+          <div class="tratto"><h3>L'ultimo tratto</h3>
+            <ol><li>Dalla SP44b a <b>sinistra su Contrada Camarde</b>, per circa 500 m.</li><li>A <b>destra</b> sulla stradina in salita, circa 350 m con un tratto sterrato. Casa Lieta è sulla destra.</li></ol>
+            <p class="avviso"><b>Attenzione:</b> alcuni navigatori propongono di arrivare da Contrada Marciano, attraverso gli oliveti. Quella strada non esiste. Se vi ci portano, tornate sulla SP44b e seguite le indicazioni qui sopra.</p>
+            <p class="nota2">La salita finale è ripida e in parte sterrata: si fa con qualsiasi auto, con le moto stradali serve un po' di attenzione.</p></div>
+          <details class="tratto"><summary>Altri modi per arrivare</summary>
+            <ul>
+              <li><b>Dall'Abruzzo:</b> A24 direzione Roma, uscita Carsoli, poi Tiburtina e Sublacense fino a Subiaco.</li>
+              <li><b>Da Latina e dalla Campania:</b> A1 uscita Anagni-Fiuggi, poi Fiuggi, Altipiani di Arcinazzo e Subiaco.</li>
+              <li><b>In treno e bus:</b> treno fino a Mandela (linea Roma-Pescara), poi bus Cotral per Subiaco. Da Roma anche Cotral diretto da Ponte Mammolo (Metro B).</li>
+              <li>Dal centro di Subiaco serve l'auto: scriveteci e concordiamo il ritiro.</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const bottoni = document.querySelectorAll<HTMLButtonElement>('[data-vai]');
+  const segna = () => bottoni.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.vai === document.documentElement.dataset.season)));
+  bottoni.forEach((b) => {
+    b.addEventListener('click', () => {
+      document.documentElement.dataset.season = b.dataset.vai!;
+      document.querySelectorAll('.rivela').forEach((el) => el.classList.add('in'));
+      segna();
+    });
+  });
+  segna();
+
+  // Barra date: messaggio WhatsApp precompilato e link a Booking con le date scelte.
+  const form = document.getElementById('richiesta') as HTMLFormElement;
+  const arr = document.getElementById('arrivo') as HTMLInputElement;
+  const part = document.getElementById('partenza') as HTMLInputElement;
+  const osp = document.getElementById('ospiti') as HTMLSelectElement;
+  const bk = document.getElementById('bk') as HTMLAnchorElement | null;
+  const bkBase = bk?.href ?? '';
+  const iso = (d: Date) => d.toLocaleDateString('sv-SE');
+  arr.min = iso(new Date());
+  const it = (v: string) => new Date(v + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'long' });
+  function aggiorna() {
+    if (arr.value) { const d = new Date(arr.value + 'T12:00:00'); d.setDate(d.getDate() + 1); part.min = iso(d); if (part.value && part.value <= arr.value) part.value = iso(d); }
+    if (bk) { const u = new URL(bkBase); if (arr.value && part.value) { u.searchParams.set('checkin', arr.value); u.searchParams.set('checkout', part.value); } u.searchParams.set('group_adults', osp.value); u.searchParams.set('no_rooms', '1'); bk.href = u.href; }
+  }
+  [arr, part, osp].forEach((el) => el.addEventListener('change', aggiorna));
+  aggiorna();
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const testo = `Buongiorno, vorrei sapere se Casa Lieta è disponibile dal ${it(arr.value)} al ${it(part.value)} per ${osp.value} ${osp.value === '1' ? 'persona' : 'persone'}. Grazie!`;
+    window.open(`https://wa.me/${form.dataset.tel}?text=${encodeURIComponent(testo)}`, '_blank', 'noopener');
+  });
+  // Le creste si muovono a velocità diverse mentre si scorre.
+  const par = document.querySelector<HTMLElement>('.parallax');
+  if (par && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const paths = par.querySelectorAll<SVGPathElement>('path');
+    let tick = false;
+    addEventListener('scroll', () => {
+      if (tick) return; tick = true;
+      requestAnimationFrame(() => {
+        const y = Math.min(scrollY, 600);
+        paths.forEach((p, i) => (p.style.transform = `translateY(${y * (0.12 - i * 0.03)}px)`));
+        tick = false;
+      });
+    }, { passive: true });
+  }
+</script>
+
+<style>
+.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--sky1),var(--sky2) 70%);transition:background .8s}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;padding-block:72px 210px}
+.h1{font-weight:400;margin:0}
+.titolo{font-family:var(--display);font-size:clamp(2.3rem,5.2vw,4.3rem);line-height:1.06;margin:14px 0 20px;text-wrap:balance;animation:sale 1s ease both}
+.periodo{margin-top:14px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.15rem;line-height:1.6;max-width:34em;color:var(--text);animation:sale 1s .15s ease both}
+@keyframes sale{from{opacity:0;transform:translateY(14px)}}
+.stagioni{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:26px;font-size:.9rem;color:var(--text)}
+.stagioni span{margin-right:4px}
+.stagioni button{font:500 .88rem var(--body);background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;transition:background .2s,color .2s}
+.stagioni button:hover{background:var(--ink);color:var(--paper)}
+:root[data-season="primavera"] [data-vai="primavera"],:root[data-season="estate"] [data-vai="estate"],:root[data-season="autunno"] [data-vai="autunno"],:root[data-season="inverno"] [data-vai="inverno"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cartoline{justify-self:end;width:min(100%,400px)}
+.postcard{margin:0;background:var(--paper);padding:12px 12px 16px;box-shadow:0 18px 40px -18px rgba(0,0,0,.35);transform:rotate(1.6deg);animation:cartolina 1.1s .2s cubic-bezier(.2,.8,.2,1) both}
+@keyframes cartolina{from{opacity:0;transform:rotate(6deg) translateY(30px)}}
+.postcard img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.postcard figcaption{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;margin-top:10px;font-size:.72rem;color:var(--muted)}
+.postcard figcaption b{font-family:var(--display);font-weight:400;font-size:1rem;color:var(--ink)}
+.parallax :global(path){will-change:transform}
+@media (max-width:820px){.hero-grid{grid-template-columns:1fr;padding-block:44px 170px}.cartoline{justify-self:start}.postcard{transform:rotate(-1deg)}}
+
+.booking{position:relative;z-index:3;margin-top:-56px}
+.bar{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:1px;background:var(--line);border:1px solid var(--line);box-shadow:0 14px 30px -20px rgba(0,0,0,.4)}
+.f{background:var(--paper);padding:12px 16px}
+.l{display:block;font-family:var(--mono);font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.f input,.f select{display:block;width:100%;border:0;background:transparent;font:500 1rem var(--body);color:var(--ink);padding:6px 0 2px;min-height:32px}
+.go{background:var(--paper);display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px}
+.sotto a{color:var(--ink)}
+.sotto{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;margin-top:12px;font-size:.92rem;color:var(--text)}
+.sotto small{font-size:inherit}
+.portali{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.portali a{color:var(--ink);text-underline-offset:3px}
+.info{display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start}
+.info h2{font-size:clamp(1.8rem,3.4vw,2.6rem);margin-top:8px}
+.info dl{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.info dl div{display:grid;grid-template-columns:30px 1fr;column-gap:16px;align-content:start;padding-block:20px;border-top:1px solid var(--line)}
+.info dl :global(.ico){grid-row:1/3;color:var(--accent);margin-top:2px}
+.info dt{font-family:var(--display);font-size:1.3rem;line-height:1.25}
+.info dd{margin:6px 0 0;color:var(--text);font-size:1rem;max-width:34em}
+@media (max-width:820px){.info{grid-template-columns:1fr;gap:20px}.info dl{grid-template-columns:1fr}}
+@media (max-width:700px){.bar{grid-template-columns:1fr 1fr}.f:nth-child(3){grid-column:1/-1}.go{grid-column:1/-1}.go .btn{flex:1;justify-content:center}}
+.portali a{display:inline-block;padding-block:6px}
+
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.act{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--ink);padding-top:18px}
+.act h3{font-size:1.45rem;line-height:1.2}
+.act p{color:var(--text);font-size:1rem}
+.act dl{display:flex;flex-wrap:wrap;gap:8px 20px;margin:auto 0 0;padding-top:4px;font-family:var(--mono);font-size:.84rem}
+.act dl div{display:flex;align-items:center;gap:6px}
+.act dl :global(.ico){color:var(--accent);flex:none}
+.act dt{color:var(--muted)} .act dd{margin:0}
+@media (max-width:820px){.acts{grid-template-columns:1fr}}
+
+.rooms{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.room figure,.luogo figure,.extra figure{margin:0;position:relative;overflow:hidden}
+.room img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;transition:transform .8s}
+.room:hover img,.luogo:hover img{transform:scale(1.04)}
+.room h3{font-size:1.35rem;margin-top:14px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--muted);margin:6px 0 10px}
+.meta span{display:inline-flex;align-items:center;gap:6px}
+.meta :global(.ico){color:var(--accent);flex:none}
+.room p,.extra p{font-size:.98rem;color:var(--text)}
+.extra{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center;margin-top:36px;padding-top:28px;border-top:1px solid var(--line)}
+.extra img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.extra h3{font-size:1.35rem;margin-top:6px}
+@media (max-width:900px){.rooms{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.rooms{grid-template-columns:1fr}.extra{grid-template-columns:1fr}}
+
+.luoghi{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.luogo img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;transition:transform .8s}
+.luogo figure span{position:absolute;right:8px;bottom:8px;background:var(--paper);font-size:.8rem;padding:3px 8px}
+.luogo h3{font-size:1.3rem;margin-top:14px}
+.luogo p{font-size:.98rem;color:var(--text);margin-top:6px}
+@media (max-width:900px){.luoghi{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.luoghi{grid-template-columns:1fr}}
+
+.voti{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center;border-block:1px solid var(--line);padding-block:36px}
+.punteggio{display:grid;justify-items:start}
+.punteggio b{font-family:var(--display);font-weight:400;font-size:4.2rem;line-height:1;color:var(--accent)}
+.punteggio span{font-family:var(--mono);font-size:.86rem;color:var(--muted)}
+.quando{font-family:var(--mono);font-size:.78rem;color:var(--muted);margin-top:2px}
+.punteggio .ta{display:inline-block;padding-block:6px;text-underline-offset:3px;font-size:.92rem;color:var(--text);margin-top:6px}
+.voti ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.voti q{display:block;font-family:var(--display);font-size:1.3rem;line-height:1.3}
+.voti li span{display:block;margin-top:8px;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+@media (max-width:820px){.voti{grid-template-columns:1fr;gap:24px}.voti ul{grid-template-columns:1fr}}
+
+.dove{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:start}
+.mappa{margin:0;border:1px solid var(--line);background:var(--paper)}
+.mappa :global(svg){display:block;width:100%;height:auto}
+.mappa figcaption{padding:10px 14px;font-size:.92rem;color:var(--text);border-top:1px solid var(--line)}
+.azioni{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.tragitti{display:grid;gap:0}
+.tratto{padding-block:18px;border-bottom:1px solid var(--line)}
+.tratto:first-child{padding-top:0}
+.tratto h3{font-size:1.25rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.tratto h3 span{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted)}
+.tratto h3 :global(.ico){color:var(--accent)}
+.tratto p,.tratto li{color:var(--text);font-size:1rem;margin-top:8px}
+.tratto ol,.tratto ul{margin:6px 0 0;padding-left:22px}
+.tratto ol li::marker{font-family:var(--mono);font-size:.86rem;color:var(--accent)}
+.tratto li{padding-left:4px}
+.tratto b{color:var(--ink);font-weight:600}
+.avviso{margin-top:14px!important;padding:12px 14px;border-left:3px solid #b3261e;background:color-mix(in srgb,#b3261e 7%,var(--paper));color:var(--ink)!important}
+.nota2{font-size:.94rem!important}
+details summary{cursor:pointer;font-family:var(--display);font-size:1.15rem;padding-block:4px}
+@media (max-width:820px){.dove{grid-template-columns:1fr}}
+</style>

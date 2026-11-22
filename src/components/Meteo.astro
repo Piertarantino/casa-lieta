@@ -1,0 +1,30 @@
+---
+// Meteo in tempo reale a Monte Livata (Open-Meteo, gratuito, senza chiave).
+---
+<div class="meteo" id="meteo" role="status" hidden>
+  <span class="dot" aria-hidden="true"></span>
+  <span>Ora a Monte Livata</span>
+  <b id="m-temp">–</b>
+  <span id="m-neve"></span>
+</div>
+<script>
+  const el = document.getElementById('meteo');
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=41.951&longitude=13.152&elevation=1350&current=temperature_2m,weather_code,snow_depth&timezone=Europe%2FRome';
+  const desc: Record<number, string> = { 0: 'sereno', 1: 'poco nuvoloso', 2: 'nuvoloso', 3: 'coperto', 45: 'nebbia', 48: 'nebbia', 51: 'pioviggine', 53: 'pioviggine', 55: 'pioviggine', 56: 'pioggia gelata', 57: 'pioggia gelata', 61: 'pioggia', 63: 'pioggia', 65: 'pioggia forte', 66: 'pioggia gelata', 67: 'pioggia gelata', 71: 'neve debole', 73: 'neve', 75: 'neve forte', 77: 'nevischio', 80: 'rovesci', 81: 'rovesci', 82: 'rovesci forti', 85: 'rovesci di neve', 86: 'rovesci di neve', 95: 'temporale', 96: 'temporale con grandine', 99: 'temporale con grandine' };
+  fetch(url).then((r) => r.json()).then((d) => {
+    const c = d.current; if (!c || !el) return;
+    document.getElementById('m-temp')!.textContent = `${Math.round(c.temperature_2m)}°`;
+    const neve = Math.round((c.snow_depth ?? 0) * 100);
+    const parti = [desc[c.weather_code] ?? ''];
+    if (neve > 0) parti.push(`neve ${neve} cm`);
+    document.getElementById('m-neve')!.textContent = parti.filter(Boolean).join(' · ');
+    el.hidden = false;
+  }).catch(() => {});
+</script>
+<style>
+.meteo[hidden]{display:none}
+.meteo{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:22px;padding:8px 14px;background:color-mix(in srgb,var(--paper) 80%,transparent);border:1px solid var(--line);border-radius:999px;font-family:var(--mono);font-size:.84rem;color:var(--text);backdrop-filter:blur(6px)}
+.meteo b{font-family:var(--display);font-weight:400;font-size:1.2rem;color:var(--ink)}
+.dot{width:7px;height:7px;border-radius:50%;background:#3aa76d;box-shadow:0 0 0 0 rgba(58,167,109,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(58,167,109,0)}100%{box-shadow:0 0 0 0 rgba(58,167,109,0)}}
+</style>

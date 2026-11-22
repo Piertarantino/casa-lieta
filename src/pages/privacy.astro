@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITO } from '../config';
+---
+<Base titolo="Privacy e cookie · Casa Lieta" descrizione="Informativa sulla privacy e sui cookie del sito di Casa Lieta, casa vacanze a Subiaco.">
+  <article class="wrap testo">
+    <div class="eyebrow">Ultimo aggiornamento: novembre 2026</div>
+    <h1>Privacy e cookie</h1>
+
+    <h2>Chi tratta i dati</h2>
+    <p>Titolare del trattamento: {SITO.nome}, {SITO.indirizzo.via}, {SITO.indirizzo.cap} {SITO.indirizzo.citta} ({SITO.indirizzo.provincia}). <!-- DA COMPLETARE: nome e cognome del titolare --> Per qualsiasi richiesta: {SITO.email}.</p>
+
+    <h2>Cookie</h2>
+    <p>Questo sito non usa cookie di profilazione né strumenti di statistica che tracciano i visitatori. I caratteri tipografici sono ospitati sul nostro server, senza chiamate a servizi esterni.</p>
+
+    <h2>Meteo in tempo reale</h2>
+    <p>Per mostrare il meteo di Monte Livata il tuo browser chiede i dati al servizio Open-Meteo. La richiesta non contiene dati personali, ma come ogni collegamento internet comunica a quel servizio il tuo indirizzo IP.</p>
+
+    <h2>Quando ci contatti</h2>
+    <p>Se ci scrivi via email, WhatsApp o telefono usiamo nome, recapiti e date del soggiorno solo per risponderti e gestire la prenotazione. Non li cediamo a nessuno e li conserviamo per il tempo richiesto dalla legge.</p>
+
+    <h2>Durante il soggiorno</h2>
+    <p>Come richiesto dalla legge, comunichiamo i dati degli ospiti alla Questura tramite il servizio Alloggiati Web della Polizia di Stato, e al Comune di Subiaco per l'imposta di soggiorno. Questi dati servono solo a questi obblighi.</p>
+
+    <h2>Link ad altri siti</h2>
+    <p>I link a Booking.com, Tripadvisor, Facebook, WhatsApp e Google Maps portano a servizi con le proprie regole sulla privacy.</p>
+
+    <h2>I tuoi diritti</h2>
+    <p>Puoi chiederci in ogni momento di vedere, correggere o cancellare i tuoi dati scrivendo a {SITO.email}. Puoi anche rivolgerti al Garante per la protezione dei dati personali.</p>
+  </article>
+</Base>
+<style>
+.testo{max-width:720px;padding-block:64px 0}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:10px 0 28px}
+h2{font-size:1.4rem;margin:32px 0 8px}
+p{color:var(--muted)}
+</style>

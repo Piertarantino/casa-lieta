@@ -1,0 +1,42 @@
+# Costruisce il sito e lo carica su Aruba via FTP a ogni modifica su main
+# (anche quando il job delle notizie aggiorna src/data/notizie.json),
+# e ogni mattina alle 6 per aggiornare stagione ed eventi passati.
+name: Pubblica su Aruba
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: pubblica
+  cancel-in-progress: false
+
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    env:
+      HAS_FTP: ${{ secrets.FTP_SERVER != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Segreti da impostare in GitHub > Settings > Secrets and variables > Actions:
+      # FTP_SERVER (es. ftp.casavacanzesubiacolivata.com), FTP_USERNAME, FTP_PASSWORD,
+      # FTP_DIR (cartella del sito sul piano Aruba, es. /www.casavacanzesubiacolivata.com/)
+      - name: Carica via FTP
+        if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_DIR }}
+          local-dir: ./dist/
+          protocol: ftps

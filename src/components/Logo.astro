@@ -1,0 +1,23 @@
+---
+// Logo "Epigrafe". Il file originale è in src/assets/logo/epigrafe.svg:
+// i colori seguono la stagione (testo = inchiostro, dettagli = accento).
+import { readFileSync } from 'node:fs';
+const { chiaro = false } = Astro.props;
+let svg = readFileSync('src/assets/logo/epigrafe.svg', 'utf8')
+  .replace(/<\?xml[^>]*>/, '')
+  .replace(/\swidth="[\d.]+"\s+height="[\d.]+"/, '')
+  .replace('<svg ', '<svg focusable="false" ')
+  .replace(/#2A1E17/gi, 'currentColor')
+  .replace(/fill="#7A3E22"/gi, 'style="fill:var(--logo-accent)"')
+  .replace(/stroke="#7A3E22"/gi, 'style="stroke:var(--logo-accent)"');
+---
+<a href="/" class:list={['logo', { chiaro }]}>
+  <Fragment set:html={svg} />
+</a>
+<style>
+.logo{display:block;color:var(--ink);--logo-accent:var(--accent);line-height:0}
+.logo :global(svg){height:46px;width:auto;display:block}
+.logo.chiaro{color:var(--paper);--logo-accent:var(--paper)}
+.logo.chiaro :global(svg){height:64px}
+@media (max-width:480px){.logo :global(svg){height:38px}}
+</style>

@@ -1,0 +1,14 @@
+{
+  "centro": { "nome": "Casa Lieta", "lat": 41.9479, "lng": 13.1152 },
+  "raggio_km": 30,
+  "fonti": [
+    { "nome": "Comune di Subiaco", "url": "https://www.comune.subiaco.rm.it/", "tipo": "sito" },
+    { "nome": "Parco Naturale Regionale dei Monti Simbruini", "url": "https://www.parcomontisimbruini.it/", "tipo": "sito" },
+    { "nome": "Google News: Subiaco", "url": "https://news.google.com/rss/search?q=Subiaco+evento&hl=it&gl=IT&ceid=IT:it", "tipo": "rss" },
+    { "nome": "Google News: Monte Livata", "url": "https://news.google.com/rss/search?q=%22Monte+Livata%22&hl=it&gl=IT&ceid=IT:it", "tipo": "rss" },
+    { "nome": "Google News: sagre Valle dell'Aniene", "url": "https://news.google.com/rss/search?q=sagra+(Subiaco+OR+Jenne+OR+Cervara+OR+Affile+OR+Arsoli+OR+Vallepietra)&hl=it&gl=IT&ceid=IT:it", "tipo": "rss" },
+    { "nome": "Google News: Monti Simbruini", "url": "https://news.google.com/rss/search?q=%22Monti+Simbruini%22&hl=it&gl=IT&ceid=IT:it", "tipo": "rss" }
+  ],
+  "paesi_in_zona": ["Subiaco", "Monte Livata", "Campo dell'Osso", "Jenne", "Cervara di Roma", "Camerata Nuova", "Vallepietra", "Affile", "Arcinazzo Romano", "Agosta", "Canterano", "Rocca Canterano", "Marano Equo", "Arsoli", "Anticoli Corrado", "Roviano", "Filettino", "Trevi nel Lazio"],
+  "escludi_parole": ["incidente", "arresto", "arrestato", "morto", "decesso", "rapina", "furto", "indagine", "processo", "consiglio comunale", "bilancio comunale", "elezioni", "sindaco replica", "polemica", "maltempo danni"]
+}

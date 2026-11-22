@@ -1,0 +1,20 @@
+---
+// Creste dei Simbruini generate in fase di build (rumore deterministico).
+function rng(seed: number) { return () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }; }
+function ridge(seed: number, base: number, amp: number, steps: number) {
+  const r = rng(seed); const pts: [number, number][] = []; let v = 0;
+  for (let i = 0; i <= steps; i++) { v = v * 0.55 + (r() - 0.5) * amp; pts.push([(i * 1440) / steps, base + v + Math.sin((i / steps) * Math.PI * 2 + seed) * amp * 0.6]); }
+  let d = `M0 260 L0 ${pts[0][1].toFixed(1)}`;
+  for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; d += ` Q${x0.toFixed(1)} ${y0.toFixed(1)} ${((x0 + x1) / 2).toFixed(1)} ${((y0 + y1) / 2).toFixed(1)}`; }
+  return d + ` L1440 ${pts[pts.length - 1][1].toFixed(1)} L1440 260 Z`;
+}
+const layers = [ridge(7, 70, 70, 22), ridge(19, 120, 60, 26), ridge(31, 170, 46, 30), ridge(43, 215, 28, 34)];
+---
+<svg class="ridges" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true">
+  {layers.map((d, i) => <path d={d} style={`fill:var(--r${i + 1})`} />)}
+</svg>
+<style>
+.ridges{position:absolute;left:0;right:0;bottom:0;width:100%;height:260px;z-index:1;display:block}
+path{transition:fill .8s}
+@media (max-width:820px){.ridges{height:170px}}
+</style>

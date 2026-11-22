@@ -1,0 +1,102 @@
+# Robot Instagram: ogni mattina pubblica il post del giorno (instagram/pubblica.mjs).
+# Gira da solo su GitHub, senza Claude e senza computer accesi.
+#
+# Segreti (Settings > Secrets and variables > Actions > Secrets):
+#   IG_TOKEN     token dell'account Instagram professionale (dura 60 giorni, si rinnova da solo il lunedì)
+#   GH_PAT       token GitHub che può modificare i segreti del repository (serve solo al rinnovo di IG_TOKEN)
+#   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD, FTP_DIR   gli stessi della pubblicazione del sito
+# Variabile (Settings > Secrets and variables > Actions > Variables):
+#   INSTAGRAM_ATTIVO = true   per accendere il robot; qualsiasi altro valore lo mette in pausa.
+name: Instagram
+
+on:
+  schedule:
+    - cron: '41 7 * * *'   # ogni giorno alle 8:41 (ora solare) / 9:41 (ora legale)
+  push:
+    branches: [main]
+    paths: ['instagram/post.json', 'instagram/eventi.txt', 'instagram/config.json']
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Pubblica questo post invece di quello del giorno (id da post.json). Vuoto = post del giorno.'
+        required: false
+      prova:
+        description: 'Solo prova: crea immagine e testo senza pubblicare'
+        type: boolean
+        default: true
+
+concurrency:
+  group: instagram
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  # A ogni modifica di post.json o eventi.txt: controlla che siano scritti bene.
+  controlla:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node instagram/controlla.mjs
+
+  pubblica:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.INSTAGRAM_ATTIVO == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node instagram/controlla.mjs
+
+      - name: Pubblica il post del giorno
+        env:
+          INSTAGRAM_ATTIVO: ${{ vars.INSTAGRAM_ATTIVO }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.FTP_DIR }}
+        run: |
+          ARGS=""
+          if [ -n "${{ inputs.id }}" ]; then ARGS="$ARGS --id=${{ inputs.id }}"; fi
+          if [ "${{ inputs.prova }}" = "true" ]; then ARGS="$ARGS --prova"; fi
+          node instagram/pubblica.mjs $ARGS
+
+      - name: Salva l'immagine del giorno tra i risultati
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-del-giorno
+          path: instagram/anteprima/*.*
+          if-no-files-found: ignore
+
+      - name: Aggiorna il registro dei post pubblicati
+        run: |
+          if ! git diff --quiet instagram/registro.json; then
+            git config user.name "robot-instagram"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add instagram/registro.json
+            git commit -m "instagram: post del $(TZ=Europe/Rome date +%d/%m)"
+            git push
+          fi
+
+      # Il token di Instagram scade dopo 60 giorni: ogni lunedì se ne chiede uno nuovo e si salva nei segreti.
+      - name: Rinnova il token Instagram (il lunedì)
+        if: github.event_name == 'schedule' && vars.INSTAGRAM_ATTIVO == 'true'
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ "$(date +%u)" != "1" ]; then echo "Non è lunedì"; exit 0; fi
+          if [ -z "$GH_TOKEN" ]; then echo "::warning::Manca GH_PAT: rinnova IG_TOKEN a mano prima che scada"; exit 0; fi
+          NUOVO=$(curl -sf "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=$IG_TOKEN" | jq -r .access_token)
+          if [ -z "$NUOVO" ] || [ "$NUOVO" = "null" ]; then echo "::error::Rinnovo del token Instagram fallito"; exit 1; fi
+          echo "::add-mask::$NUOVO"
+          gh secret set IG_TOKEN --body "$NUOVO" --repo "$GITHUB_REPOSITORY"
+          echo "Token Instagram rinnovato"

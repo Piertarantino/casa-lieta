@@ -1,0 +1,16 @@
+# EVENTI DA PUBBLICARE SU INSTAGRAM
+#
+# Una riga per evento, con i campi separati da |
+#   data | titolo | luogo | link della fonte ufficiale | descrizione (facoltativa, una o due frasi)
+#
+# Per un evento di più giorni scrivi le due date unite da due punti:  2026-12-06..2026-12-08
+# Il post esce da solo 3 giorni prima dell'inizio (si cambia in config.json, "anticipoEventi").
+# Scrivi solo eventi con date confermate da Comune, Pro Loco, Parco o monasteri.
+# Le righe che cominciano con # sono ignorate: puoi lasciare qui gli esempi.
+#
+# ESEMPI (non vengono pubblicati perché cominciano con #):
+# 2027-01-17 | Festa di Sant'Antonio Abate | Subiaco | https://www.comune.subiaco.rm.it/ | Benedizione degli animali in piazza.
+# 2027-10-16..2027-10-17 | Sagra della castagna | Paese di esempio | https://link-della-pro-loco.it/
+#
+# ---- Scrivi qui sotto ----
+

@@ -1,0 +1,40 @@
+---
+import Logo from './Logo.astro';
+import { STAGIONI, ORDINE } from '../data/stagioni';
+const { notizie = false } = Astro.props;
+const voci = [
+  { href: '/#camere', testo: 'Le camere' },
+  { href: '/#stagione', stagione: true },
+  ...(notizie ? [{ href: '/#notizie', testo: 'Cosa succede' }] : []),
+  { href: '/#dintorni', testo: 'Dintorni' },
+  { href: '/#dove', testo: 'Dove siamo' },
+];
+---
+<header class="site">
+  <div class="wrap riga">
+    <Logo />
+    <nav aria-label="Principale" class="desk"><ul>
+      {voci.map((v) => <li><a href={v.href}>{v.stagione ? ORDINE.map((s) => <span data-solo={s}>{STAGIONI[s].nome}</span>) : v.testo}</a></li>)}
+    </ul></nav>
+    <a class="btn" href="/#prenota">Prenota</a>
+  </div>
+  <nav aria-label="Sezioni" class="mob"><div class="wrap"><ul>
+    {voci.map((v) => <li><a href={v.href}>{v.stagione ? ORDINE.map((s) => <span data-solo={s}>{STAGIONI[s].nome}</span>) : v.testo}</a></li>)}
+  </ul></div></nav>
+</header>
+<style>
+header.site{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.riga{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;font-size:1rem}
+a{text-decoration:none}
+nav a{display:inline-block;padding-block:8px}
+nav a:hover{color:var(--accent)}
+.mob{display:none}
+@media (max-width:860px){
+  .desk{display:none}
+  .mob{display:block;border-top:1px solid var(--line)}
+  .mob ul{gap:4px 18px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;font-size:.95rem}
+  .mob ul::-webkit-scrollbar{display:none}
+  .mob a{padding-block:10px}
+}
+</style>

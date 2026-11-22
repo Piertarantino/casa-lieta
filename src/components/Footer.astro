@@ -1,0 +1,48 @@
+---
+import Logo from './Logo.astro';
+import Icona from './Icona.astro';
+import { SITO } from '../config';
+const { notizie = false } = Astro.props;
+const anno = new Date().getFullYear();
+---
+<footer>
+  <div class="wrap">
+    <div>
+      <Logo chiaro />
+      <p class="addr">{SITO.tipo} tra Subiaco e Monte Livata, nel Parco dei Monti Simbruini.<br />{SITO.indirizzo.via}, {SITO.indirizzo.cap} {SITO.indirizzo.citta} ({SITO.indirizzo.provincia})</p>
+    </div>
+    <div>
+      <p class="h">Contatti</p>
+      <ul>
+        <li><a href={`tel:${SITO.telefono.replace(/\s/g, '')}`}><Icona nome="telefono" size={18} />339 394 8962</a></li>
+        <li><a href={`tel:${SITO.telefonoFisso.replace(/\s/g, '')}`}><Icona nome="telefono" size={18} />0774 83671</a></li>
+        <li><a href={`mailto:${SITO.email}`}><Icona nome="mail" size={18} />{SITO.email}</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="h">Esplora</p>
+      <ul>
+        <li><a href="/#stagione">Sentieri e neve</a></li>
+        <li><a href="/#dintorni">Monasteri di Subiaco</a></li>
+        {notizie && <li><a href="/#notizie">Eventi e sagre</a></li>}
+        {SITO.portali.filter((p) => p.url).map((p) => <li><a href={p.url} target="_blank" rel="noopener">{p.nome}</a></li>)}
+        <li><a href={SITO.facebook} target="_blank" rel="noopener">Facebook</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap legal"><span>© {anno} {SITO.nome} · CIN {SITO.cin}</span><span><a href="/privacy/">Privacy e cookie</a></span></div>
+</footer>
+<style>
+footer{margin-top:110px;background:var(--r4);color:var(--paper);transition:background .8s}
+.wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:28px;padding-block:52px 28px}
+.addr{margin-top:12px;font-size:.96rem;opacity:.9;max-width:32em}
+.h{font-family:var(--mono);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+ul{list-style:none;margin:6px 0 0;padding:0;display:grid;font-size:1rem}
+li a{display:inline-flex;align-items:center;gap:10px;padding-block:8px;min-height:24px}
+li a :global(.ico){opacity:.8;flex:none}
+a{text-decoration:none}
+a:hover{text-decoration:underline}
+.legal{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding-block:16px 28px;border-top:1px solid color-mix(in srgb,var(--paper) 20%,transparent);font-family:var(--mono);font-size:.8rem;opacity:.8}
+.legal a{display:inline-block;padding-block:6px}
+@media (max-width:700px){.wrap{grid-template-columns:1fr}}
+</style>
