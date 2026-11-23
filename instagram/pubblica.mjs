@@ -63,6 +63,9 @@ async function main() {
   }
   if (!prova && process.env.INSTAGRAM_ATTIVO !== 'true') esci('Pubblicazione in pausa (variabile INSTAGRAM_ATTIVO diversa da "true"). Niente da fare.');
 
+  // Più orari di partenza al giorno (per sicurezza): se il post di oggi è già uscito, non si ripubblica.
+  if (!prova && !arg('id') && !arg('ftp') && registro().pubblicati.some((x) => x.data === data)) esci(`${data}: il post di oggi è già uscito. Niente da fare.`);
+
   let scelta;
   if (arg('id')) {
     const p = banca().find((x) => x.id === arg('id'));

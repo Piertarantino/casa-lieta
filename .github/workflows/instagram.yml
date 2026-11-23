@@ -12,7 +12,11 @@ name: Instagram
 
 on:
   schedule:
-    - cron: '41 7 * * *'   # ogni giorno alle 8:41 (ora solare) / 9:41 (ora legale)
+    # GitHub a volte ritarda o salta le partenze programmate: per questo ci sono tre orari.
+    # La prima che parte pubblica; le altre vedono il post già uscito nel registro e non fanno niente.
+    - cron: '41 7 * * *'   # 8:41 (ora solare) / 9:41 (ora legale)
+    - cron: '23 9 * * *'   # 10:23 / 11:23, riserva
+    - cron: '47 11 * * *'  # 12:47 / 13:47, riserva
   push:
     branches: [main]
     paths: ['instagram/post.json', 'instagram/eventi.txt', 'instagram/config.json']
